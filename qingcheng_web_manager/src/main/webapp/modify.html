@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7; IE=EDGE">
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+    <title>个人注册</title>
+    <link rel="icon" href="./img/favicon.ico">
+
+    <link rel="stylesheet" type="text/css" href="./css/all.css" />
+    <link rel="stylesheet" type="text/css" href="./css/pages-register.css" />
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="/plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+
+<div class="register py-container" id="app">
+
+    <!--register-->
+    <div class="registerArea">
+        <h3>修改密码<span class="go"></span></h3>
+        <div class="info">
+            <form class="sui-form form-horizontal">
+
+                <div class="control-group">
+                    <label class="control-label">原密码：</label>
+                    <div class="controls">
+                        <input type="password" placeholder="请输入你的原密码"  v-model="formData.oldPassword" class="input-xfat input-xlarge">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">新密码：</label>
+                    <div class="controls">
+                        <input type="password" placeholder="请输入你的新密码" v-model="formData.newPassword" class="input-xfat input-xlarge">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">确认密码：</label>
+                    <div class="controls">
+                        <input type="password" placeholder="请确认你的新密码" v-model="formData.rePassword" class="input-xfat input-xlarge">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label"></label>
+                    <div class="controls btn-reg">
+                        <a class="sui-btn btn-block btn-xlarge btn-danger" target="_blank" @click="submit">确定</a>
+                    </div>
+                </div>
+            </form>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+
+<!-- 引入组件库 -->
+<script src="/js/axios.js"></script>
+<script src="js/vue.js"></script><!-- vue -->
+<script src="js/elementui.js"></script><!-- element-ui -->
+<script>
+    new Vue({
+        el:"#app",
+        data() {
+            return {
+                formData:{
+                    oldPassword:"",
+                    newPassword:"",
+                    rePassword:""
+                }
+            }
+        },
+        methods:{
+            submit() {
+                if (this.formData.oldPassword === null || this.formData.oldPassword === '' || this.formData.oldPassword === undefined) {
+                    this.$message.error("原密码不能为空!");
+                    return;
+                }
+                if (this.formData.oldPassword === null || this.formData.newPassword === undefined) {
+                    this.$message.error("请输入您的新密码!");
+                    return;
+                }
+                if (this.formData.rePassword === null || this.formData.rePassword === '' || this.formData.rePassword === undefined) {
+                    this.$message.error("请确认您的新密码!");
+                    return;
+                }
+                if (this.formData.newPassword !== this.formData.rePassword) {
+                    this.$message.error("两次密码输入不正确，请重新输入");
+                    return;
+                }
+                axios.post("/modify/modifyPassword.do",this.formData).then(response => {
+                    if (response.data.code === 0) {
+                        this.$message.success("修改密码成功");
+                        location.href = "/logout";
+                    } else {
+                        if (response.data.message) {
+                            this.$message.error(response.data.message);
+                        }else {
+                            this.$message.error("修改失败");
+                        }
+                    }
+                });
+            }
+        }
+    })
+</script>
+
+</html>
