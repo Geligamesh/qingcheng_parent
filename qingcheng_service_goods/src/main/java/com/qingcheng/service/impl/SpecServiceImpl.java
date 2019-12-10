@@ -144,7 +144,6 @@ public class SpecServiceImpl implements SpecService {
             if(searchMap.get("templateId")!=null ){
                 criteria.andEqualTo("templateId",searchMap.get("templateId"));
             }
-
         }
         return example;
     }
