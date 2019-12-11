@@ -49,6 +49,15 @@ public class SkuSearchServiceImpl implements SkuSearchService {
         boolQueryBuilder.must(matchQueryBuilder);
 
         searchSourceBuilder.query(boolQueryBuilder);
+
+
+        Integer pageNo = Integer.parseInt(searchMap.get("pageNo"));//页码
+        int pageSize = 30;//页大小
+        //开始索引大小
+        int fromIndex = (pageNo - 1) * pageSize;
+
+        searchSourceBuilder.from(fromIndex);
+        searchSourceBuilder.size(pageSize);
         searchRequest.source(searchSourceBuilder);
 
         // 1.2 商品分类过滤
@@ -151,6 +160,10 @@ public class SkuSearchServiceImpl implements SkuSearchService {
 
             resultMap.put("specList", specList);
 
+            //2.5 页码
+            long totalCount = searchHits.getTotalHits();//总记录数
+            long totalPages = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;//总页数
+            resultMap.put("totalPages", totalPages);
 
         } catch (IOException e) {
             e.printStackTrace();
