@@ -8,6 +8,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -17,7 +18,12 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Headers;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,7 +56,6 @@ public class SkuSearchServiceImpl implements SkuSearchService {
 
         searchSourceBuilder.query(boolQueryBuilder);
 
-
         Integer pageNo = Integer.parseInt(searchMap.get("pageNo"));//页码
         int pageSize = 30;//页大小
         //开始索引大小
@@ -58,6 +63,17 @@ public class SkuSearchServiceImpl implements SkuSearchService {
 
         searchSourceBuilder.from(fromIndex);
         searchSourceBuilder.size(pageSize);
+
+        String sort = searchMap.get("sort");//排序字段
+        String sortOrder = searchMap.get("sortOrder");//排序规则
+        if (!"".equals(sort)) {
+            searchSourceBuilder.sort(sort, SortOrder.valueOf(sortOrder));
+        }
+        //高亮设置
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        highlightBuilder.field("name").preTags("<font style='color:red'>").postTags("</font>");
+        searchSourceBuilder.highlighter(highlightBuilder);
+
         searchRequest.source(searchSourceBuilder);
 
         // 1.2 商品分类过滤
@@ -114,6 +130,12 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             List<Map<String,Object>> resultList = new ArrayList<>();
             for(SearchHit hit:hits){
                 Map<String, Object> skuMap = hit.getSourceAsMap();
+                //高亮处理
+                Map<String, HighlightField> highlightFields = hit.getHighlightFields();
+                HighlightField highlightField = highlightFields.get("name");
+                Text[] fragments = highlightField.fragments();
+                //用高亮内容替换原来内容
+                skuMap.put("name", fragments[0].toString());
                 resultList.add(skuMap);
             }
             resultMap.put("rows", resultList);

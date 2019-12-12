@@ -27,6 +27,16 @@ public class SearchController {
             searchMap.put("pageNo", "1");
         }
 
+        //页面传递给后端两个参数，sort：排序字段 sortOrder 排序规则 （升序/降序）
+        if (searchMap.get("sort") == null) {//排序字段
+            searchMap.put("sort", "");
+        }
+
+        if (searchMap.get("sortOrder") == null) {//排序规则
+            searchMap.put("sortOrder", "DESC");
+        }
+
+
         Map search = skuSearchService.search(searchMap);
         model.addAttribute("result", search);
 
