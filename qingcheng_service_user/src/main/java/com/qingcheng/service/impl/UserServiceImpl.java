@@ -1,22 +1,29 @@
 package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.UserMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.user.User;
 import com.qingcheng.service.user.UserService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 返回全部记录
@@ -93,6 +100,67 @@ public class UserServiceImpl implements UserService {
      */
     public void delete(String username) {
         userMapper.deleteByPrimaryKey(username);
+    }
+
+    /**
+     * 发送短信验证码
+     * @param phone 手机号
+     */
+    public void sendSms(String phone) {
+        //生成一个6位的短信验证码
+        Random random = new Random();
+        //生成的验证码
+        int code = random.nextInt(999999);
+        //位数处理
+        if (code < 100000) {
+            code += 100000;
+        }
+        System.out.println("短信验证码:" + code);
+        //将验证码保存到redis中，并设置5分钟的过期时间
+        redisTemplate.boundValueOps("code_" + phone).set(code + "", 5, TimeUnit.MINUTES);
+        //将验证码发送到mq
+        Map<String,String> map = new HashMap<String, String>();
+        map.put("phone", phone);
+        map.put("code", code + "");
+        rabbitTemplate.convertAndSend("", "queue.sms", JSON.toJSONString(map));
+    }
+
+    /**
+     * 用户注册
+     * @param user 用户
+     * @param smsCode 验证码
+     */
+    public void add(User user, String smsCode) {
+        //验证
+        String sysCode = (String) redisTemplate.boundValueOps("code_" + user.getPhone()).get();
+        if (sysCode == null) {
+            throw new RuntimeException("验证码未发送或者已过期");
+        }
+        if (!sysCode.equals(smsCode)) {
+            throw new RuntimeException("验证码不正确");
+        }
+        if (user.getUsername() == null) {
+            //把手机号作为用户名
+            user.setUsername(user.getPhone());
+        }
+        //校验用户名是否已经注册
+        User searchUser = new User();
+        searchUser.setUsername(user.getUsername());
+        if (userMapper.selectCount(searchUser) > 0) {
+            throw new RuntimeException("该手机号已经被注册");
+        }
+        //数据添加
+        user.setCreated(new Date());
+        user.setUpdated(new Date());
+        //积分
+        user.setPoints(0);
+        //状态
+        user.setStatus("1");
+        //邮箱验证
+        user.setIsEmailCheck("0");
+        //手机验证
+        user.setIsMobileCheck("1");
+        userMapper.insertSelective(user);
     }
 
     /**

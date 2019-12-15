@@ -13,9 +13,6 @@ public class User implements Serializable{
 	@Id
 	private String username;//用户名
 
-
-	
-
 	private String password;//密码，加密存储
 
 	private String phone;//注册手机号
@@ -54,7 +51,7 @@ public class User implements Serializable{
 
 	private java.util.Date lastLoginTime;//最后登录时间
 
-	
+
 	public String getUsername() {
 		return username;
 	}
@@ -196,5 +193,5 @@ public class User implements Serializable{
 	}
 
 
-	
+
 }
