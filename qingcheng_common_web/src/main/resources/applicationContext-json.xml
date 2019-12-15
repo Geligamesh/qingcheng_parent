@@ -35,9 +35,9 @@
 
 	<!--阿里云OSS  -->
 	<bean id="ossClient" class="com.aliyun.oss.OSSClient">
-		<constructor-arg index="0" value="oss-cn-hangzhou.aliyuncs.com"></constructor-arg>
-		<constructor-arg index="1" value="LTAI4FkvFBjnZxaoHUmussZt"></constructor-arg>
-		<constructor-arg index="2" value="3EhR1mRXL4Sb6NasbYZsxZE7W4dQpm"></constructor-arg>
+		<constructor-arg index="0" value="#"></constructor-arg>
+		<constructor-arg index="1" value="#"></constructor-arg>
+		<constructor-arg index="2" value="#"></constructor-arg>
 	</bean>
 
 </beans>
