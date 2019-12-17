@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="qingcheng_common" />
+        <module name="qingcheng_common_cas" />
         <module name="qingcheng_common_service" />
         <module name="qingcheng_common_web" />
         <module name="qingcheng_interface" />
@@ -24,6 +25,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="qingcheng_common" target="1.5" />
+      <module name="qingcheng_common_cas" target="8" />
       <module name="qingcheng_common_service" target="1.5" />
       <module name="qingcheng_common_web" target="1.5" />
       <module name="qingcheng_interface" target="8" />

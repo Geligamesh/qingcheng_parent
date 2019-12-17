@@ -34,4 +34,13 @@ public class UserController {
         userService.add(user, smsCode);
         return new Result();
     }
+
+    public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        // String encode = encoder.encode("123456");
+        //$2a$10$ZiVgpqRfG6lcqonEesr1..O5pdlpr1oz5xfSLIeRzUuV9Cl.9HJKi
+        // System.out.println(encode);
+        boolean matches = encoder.matches("123456", "$2a$10$ZiVgpqRfG6lcqonEesr1..O5pdlpr1oz5xfSLIeRzUuV9Cl.9HJKi");
+        System.out.println(matches);
+    }
 }
