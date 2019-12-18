@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +18,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
      * @throws UsernameNotFoundException
      */
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
-        List<GrantedAuthority> authorities = new ArrayList<>();
+        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         return new User(username, "", authorities);
     }

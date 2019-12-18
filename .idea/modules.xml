@@ -16,6 +16,7 @@
       <module fileurl="file://$PROJECT_DIR$/qingcheng_service_sms/qingcheng_service_sms.iml" filepath="$PROJECT_DIR$/qingcheng_service_sms/qingcheng_service_sms.iml" />
       <module fileurl="file://$PROJECT_DIR$/qingcheng_service_system/qingcheng_service_system.iml" filepath="$PROJECT_DIR$/qingcheng_service_system/qingcheng_service_system.iml" />
       <module fileurl="file://$PROJECT_DIR$/qingcheng_service_user/qingcheng_service_user.iml" filepath="$PROJECT_DIR$/qingcheng_service_user/qingcheng_service_user.iml" />
+      <module fileurl="file://$PROJECT_DIR$/qingcheng_web_center/qingcheng_web_center.iml" filepath="$PROJECT_DIR$/qingcheng_web_center/qingcheng_web_center.iml" />
       <module fileurl="file://$PROJECT_DIR$/qingcheng_web_manager/qingcheng_web_manager.iml" filepath="$PROJECT_DIR$/qingcheng_web_manager/qingcheng_web_manager.iml" />
       <module fileurl="file://$PROJECT_DIR$/qingcheng_web_portal/qingcheng_web_portal.iml" filepath="$PROJECT_DIR$/qingcheng_web_portal/qingcheng_web_portal.iml" />
     </modules>
