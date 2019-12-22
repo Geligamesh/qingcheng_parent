@@ -41,14 +41,15 @@
 								</li>
 
 								<li class="f-item">
-										<span>
-											<a href="cart.html" target="_blank">我的购物车</a>
-										</span>
+									<span>
+										<a href="cart.html" target="_blank">我的购物车</a>
+									</span>
 								</li>
+
 								<li class="f-item">
-										<span>
-											<a href="home.html" target="_blank">我的青橙</a>
-										</span>
+									<span>
+										<a href="home.html" target="_blank">我的青橙</a>
+									</span>
 								</li>
 								<li class="f-item">
 									<span>青橙会员</span>
@@ -1874,7 +1875,7 @@
 							</div>
 							<div class="fl price">
 								<i>¥</i>
-								<em>{{price}}</em>
+								<em th:text="${#numbers.formatDecimal(sku.price / 100,1,2)}"></em>
 								<span>降价通知</span>
 							</div>
 							<div class="fr remark">
@@ -1932,16 +1933,16 @@
 							<div class="fl title">
 								<div class="control-group">
 									<div class="controls">
-										<input autocomplete="off" type="text" value="1" minnum="1" class="itxt" />
-										<a href="javascript:void(0)" class="increment plus">+</a>
-										<a href="javascript:void(0)" class="increment mins">-</a>
+										<input autocomplete="off" type="text" v-model="num" minnum="1" class="itxt" />
+										<a @click="addNum(1)" class="increment plus">+</a>
+										<a @click="addNum(-1)" class="increment mins">-</a>
 									</div>
 								</div>
 							</div>
 							<div class="fl">
 								<ul class="btn-choose unstyled">
 									<li>
-										<a href="cart.html" target="_blank" class="sui-btn  btn-danger addshopcar">加入购物车</a>
+										<a @click="toCartList()" target="_blank" class="sui-btn  btn-danger addshopcar">加入购物车</a>
 									</li>
 								</ul>
 							</div>
@@ -2712,7 +2713,7 @@
 							<div class="tbar-panel-content J-panel-content">
 								<div class="jt-history-wrap">
 									<ul>
-										<!--<li class="jth-item">
+									<!--<li class="jth-item">
 										<a href="#" class="img-wrap"> <img src="../../.../portal/img/like_03.png" height="100" width="100" /> </a>
 										<a class="add-cart-button" href="#" target="_blank">加入购物车</a>
 										<a href="#" target="_blank" class="price">￥498.00</a>
@@ -2784,25 +2785,35 @@
 <script type="text/javascript" src="./js/plugins/sui/sui.min.js"></script>
 <script type="text/javascript" src="./js/plugins/jquery.jqzoom/jquery.jqzoom.js"></script>
 <script type="text/javascript" src="./js/plugins/jquery.jqzoom/zoom.js"></script>
-</body>
 <script src="js/axios.js"></script>
 <script src="js/vue.js"></script>
+</body>
 <script th:inline="javascript">
 	new Vue({
 		el:"#app",
 		data() {
 			return {
 				skuId:/*[[${sku.id}]]*/,
-				price:0
+				price:0,
+				num:1
 			}
 		},
 		methods:{
-
+			addNum(num) {
+				this.num = this.num + num;
+				if (num <= 0) {
+					this.num = 1;
+				}
+			},
+			toCartList() {
+				//添加商品到购物车
+				location.href = `http://localhost:9102/cart/buy.do?skuId=${this.skuId}&num=${this.num}`;
+			}
 		},
 		created() {
-			axios.get("http://localhost:9102/sku/price.do?skuId=" + this.skuId).then(response => {
-				this.price = (response.data / 100).toFixed(2);
-			});
+			// axios.get("http://localhost:9102/sku/price.do?skuId=" + this.skuId).then(response => {
+			// 	this.price = response.data;
+			// });
 		}
 	});
 </script>

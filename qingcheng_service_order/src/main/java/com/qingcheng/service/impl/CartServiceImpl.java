@@ -8,13 +8,12 @@ import com.qingcheng.pojo.order.OrderItem;
 import com.qingcheng.service.goods.CategoryService;
 import com.qingcheng.service.goods.SkuService;
 import com.qingcheng.service.order.CartService;
+import com.qingcheng.service.order.PreferentialService;
 import com.qingcheng.util.CacheKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -25,6 +24,8 @@ public class CartServiceImpl implements CartService {
     private SkuService skuService;
     @Reference
     private CategoryService categoryService;
+    @Autowired
+    private PreferentialService preferentialService;
 
     /**
      * 从redis中提取某用户的购物车
@@ -66,7 +67,7 @@ public class CartServiceImpl implements CartService {
                   //数量变更
                   orderItem.setNum(orderItem.getNum() + num);
                   //金额变更
-                  orderItem.setMoney(orderItem.getPrice() * num);
+                  orderItem.setMoney(orderItem.getPrice() * orderItem.getNum());
                   //重量变量
                   orderItem.setWeight(weight * orderItem.getNum() );
 
@@ -131,4 +132,96 @@ public class CartServiceImpl implements CartService {
         }
         redisTemplate.boundHashOps(CacheKey.CART_LIST).put(username, cartList);
     }
+
+    /**
+     * 更新选中状态
+     * @param username
+     * @param skuId
+     * @param checked
+     * @return
+     */
+    @Override
+    public boolean updateChecked(String username, String skuId, boolean checked) {
+        List<Map<String, Object>> cartList = findCartList(username);
+        boolean isOk = false;
+        for (Map<String, Object> map : cartList) {
+            OrderItem orderItem = (OrderItem) map.get("item");
+            if (orderItem.getSkuId().equals(skuId)) {
+                map.put("checked", checked);
+                isOk = true;
+                break;
+            }
+        }
+        if (isOk) {
+            redisTemplate.boundHashOps(CacheKey.CART_LIST).put(username, cartList);
+        }
+        return isOk;
+    }
+
+    /**
+     * 删除选中的购物车
+     * @param username
+     */
+    @Override
+    public void deleteCheckedCart(String username) {
+        //获得未选中的购物车
+        List<Map<String, Object>> cartList = findCartList(username).stream().filter(cart -> !((boolean) cart.get("checked"))).collect(Collectors.toList());
+        redisTemplate.boundHashOps(CacheKey.CART_LIST).put(username, cartList);
+    }
+
+    /**
+     * 计算购物车的优惠金额
+     * @param username
+     * @return
+     */
+    @Override
+    public int preferential(String username) {
+        //获取选中的购物车
+        List<OrderItem> orderItemList = this.findCartList(username).stream().filter(cart -> (boolean) cart.get("checked"))
+                .map(cart -> (OrderItem) cart.get("item"))
+                .collect(Collectors.toList());
+        //按分类聚合统计每个分类的金额
+        //分类 金额
+        // 1   3500
+        // 2   2000
+        Map<Integer, IntSummaryStatistics> cartMap = orderItemList.stream()
+                .collect(Collectors.groupingBy(OrderItem::getCategoryId3, Collectors.summarizingInt(OrderItem::getMoney)));
+
+        //累计优惠金额
+        int allPreMoney = 0;
+        //循环结果，统计每个分类的优惠金额，并累加
+        for (Integer categoryId : cartMap.keySet()) {
+            //获取每个品类的消费金额
+            int money = (int) cartMap.get(categoryId).getSum();
+            //获取优惠金额
+            int preferentialMoney = preferentialService.findPreMoneyByCategoryId(categoryId, money);
+            allPreMoney += preferentialMoney;
+            System.out.println("分类：" + categoryId + ",消费金额：" + money + ",优惠金额：" + preferentialMoney);
+        }
+        return allPreMoney;
+    }
+
+    /**
+     * 获取最新购物车列表
+     * @param username
+     * @return
+     */
+    @Override
+    public List<Map<String, Object>> findNewOrderItemList(String username) {
+        //获取购物车
+        List<Map<String, Object>> cartList = findCartList(username);
+        //循环购物车，刷新价格
+        for (Map<String, Object> cart : cartList) {
+            OrderItem orderItem = (OrderItem)cart.get("item");
+            Sku sku = skuService.findById(orderItem.getSkuId());
+            //更新价格
+            orderItem.setPrice(sku.getPrice());
+            //更新金额
+            orderItem.setMoney(sku.getPrice() * orderItem.getNum());
+        }
+        //保存最新购物车
+        redisTemplate.boundHashOps(CacheKey.CART_LIST).put(username, cartList);
+        return cartList;
+    }
+
 }

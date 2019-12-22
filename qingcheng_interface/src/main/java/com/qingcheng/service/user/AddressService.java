@@ -32,4 +32,11 @@ public interface AddressService {
 
     public void delete(Integer id);
 
+    /**
+     * 根据用户名查找地址列表
+     * @param username
+     * @return
+     */
+    List<Address> findByUsername(String username);
+
 }

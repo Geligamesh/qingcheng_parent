@@ -1,4 +1,5 @@
 package com.qingcheng.service.impl;
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -8,7 +9,10 @@ import com.qingcheng.dao.OrderLogMapper;
 import com.qingcheng.dao.OrderMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.order.*;
+import com.qingcheng.service.goods.SkuService;
+import com.qingcheng.service.order.CartService;
 import com.qingcheng.service.order.OrderService;
+import com.qingcheng.util.IdWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +20,8 @@ import tk.mybatis.mapper.entity.Example;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -28,6 +34,13 @@ public class OrderServiceImpl implements OrderService {
     private OrderLogMapper orderLogMapper;
     @Autowired
     private OrderConfigMapper orderConfigMapper;
+    @Autowired
+    private CartService cartService;
+    @Reference
+    private SkuService skuService;
+    @Autowired
+    private IdWorker idWorker;
+
 
     private Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
@@ -72,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
         PageHelper.startPage(page,size);
         Example example = createExample(searchMap);
         Page<Order> orders = (Page<Order>) orderMapper.selectByExample(example);
-        return new PageResult<Order>(orders.getTotal(),orders.getResult());
+        return new PageResult<>(orders.getTotal(), orders.getResult());
     }
 
     /**
@@ -88,8 +101,57 @@ public class OrderServiceImpl implements OrderService {
      * 新增
      * @param order
      */
-    public void add(Order order) {
-        orderMapper.insert(order);
+    public Map<String,Object> add(Order order) {
+        //获取选中的购物车
+        List<Map<String, Object>> cartList = cartService.findNewOrderItemList(order.getUsername());
+        List<OrderItem> orderItemList = cartList.stream().filter(cart -> (boolean) cart.get("checked"))
+                .map(cart -> (OrderItem) cart.get("item"))
+                .collect(Collectors.toList());
+        //扣减库存
+        if (!skuService.duductionStock(orderItemList)) {
+            throw new RuntimeException("库存扣减失败");
+        }
+        //保存订单主表
+        order.setId(idWorker.nextId() + "");
+        IntStream numStream = orderItemList.stream().mapToInt(OrderItem::getNum);
+        IntStream moneyStream = orderItemList.stream().mapToInt(OrderItem::getMoney);
+
+        int totalNum = numStream.sum();
+        int totalMoney = moneyStream.sum();
+        //满减优惠
+        int preMoney = cartService.preferential(order.getUsername());
+        //总数量
+        order.setTotalNum(totalNum);
+        //总金额
+        order.setTotalMoney(totalMoney);
+        order.setPreMoney(preMoney);
+        //支付金额
+        order.setPayMoney(totalMoney - preMoney);
+        order.setCreateTime(new Date());
+        //订单状态
+        order.setOrderStatus("0");
+        //支付状态
+        order.setPayStatus("0");
+        //发货状态
+        order.setConsignStatus("0");
+        orderMapper.insertSelective(order);
+
+        //打折比例
+        double proportion = (double)order.getPayMoney() / order.getTotalMoney();
+
+        //保存订单明细表
+        for (OrderItem orderItem : orderItemList) {
+            orderItem.setId(idWorker.nextId() + "");
+            orderItem.setOrderId(order.getId());
+            orderItem.setPayMoney((int) (orderItem.getMoney() * proportion));
+            orderItemMapper.insertSelective(orderItem);
+        }
+        //清除购物车
+        cartService.deleteCheckedCart(order.getUsername());
+        Map<String,Object> map = new HashMap<>();
+        map.put("ordersn", order.getId());
+        map.put("money", order.getPayMoney());
+        return map;
     }
 
     /**
@@ -124,7 +186,7 @@ public class OrderServiceImpl implements OrderService {
         //根据订单id查询订单项信息
         List<OrderItem> orderItemList = orderItemMapper.selectByExample(orderItemExample);
         if (orderItemList == null || orderItemList.size() == 0) {
-            orderItemList = new ArrayList<OrderItem>();
+            orderItemList = new ArrayList<>();
             log.info("订单id：{} 没有订单项",orderId);
         }
         return new OrderInfo(order,orderItemList);

@@ -1,4 +1,5 @@
 package com.qingcheng.service.impl;
+
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -8,7 +9,7 @@ import com.qingcheng.pojo.order.Preferential;
 import com.qingcheng.service.order.PreferentialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import tk.mybatis.mapper.entity.Example;
-
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class PreferentialServiceImpl implements PreferentialService {
     public PageResult<Preferential> findPage(int page, int size) {
         PageHelper.startPage(page,size);
         Page<Preferential> preferentials = (Page<Preferential>) preferentialMapper.selectAll();
-        return new PageResult<Preferential>(preferentials.getTotal(),preferentials.getResult());
+        return new PageResult<>(preferentials.getTotal(), preferentials.getResult());
     }
 
     /**
@@ -59,7 +60,7 @@ public class PreferentialServiceImpl implements PreferentialService {
         PageHelper.startPage(page,size);
         Example example = createExample(searchMap);
         Page<Preferential> preferentials = (Page<Preferential>) preferentialMapper.selectByExample(example);
-        return new PageResult<Preferential>(preferentials.getTotal(),preferentials.getResult());
+        return new PageResult<>(preferentials.getTotal(), preferentials.getResult());
     }
 
     /**
@@ -96,6 +97,48 @@ public class PreferentialServiceImpl implements PreferentialService {
     }
 
     /**
+     * 根据分类和消费金额查询优惠金额
+     * @param categoryId 分类
+     * @param money 消费额
+     * @return
+     */
+    @Override
+    public int findPreMoneyByCategoryId(Integer categoryId, int money) {
+        //指定查询条件在优惠规则计算表中查询
+        //查询条件：状态1 分类：消费额 开始时间和截止时间 排序：消费额降序
+        Example example = new Example(Preferential.class);
+        Example.Criteria criteria = example.createCriteria();
+        //状态
+        criteria.andEqualTo("state", "1");
+        //分类
+        criteria.andEqualTo("categoryId", categoryId);
+        //消费额
+        criteria.andLessThanOrEqualTo("buyMoney", money);
+        //截止日期大于等于当前日期
+        criteria.andGreaterThanOrEqualTo("endTime", new Date());
+        //开始日期小于等于当前日期
+        criteria.andLessThanOrEqualTo("startTime", new Date());
+        //购买金额降序排序
+        example.setOrderByClause("buy_money desc");
+        List<Preferential> preferentials = preferentialMapper.selectByExample(example);
+        //说明有优惠
+        if (preferentials.size() >= 1) {
+            Preferential preferential = preferentials.get(0);
+            if ("1".equals(preferential.getType())) {
+                //如果不翻倍
+                return preferential.getPreMoney();
+            }else {
+                //翻倍
+                int multiple = money / preferential.getBuyMoney();
+                return multiple * preferential.getPreMoney();
+            }
+        }else {
+            //没有优惠
+            return 0;
+        }
+    }
+
+    /**
      * 构建查询条件
      * @param searchMap
      * @return
@@ -129,7 +172,6 @@ public class PreferentialServiceImpl implements PreferentialService {
             if(searchMap.get("categoryId")!=null ){
                 criteria.andEqualTo("categoryId",searchMap.get("categoryId"));
             }
-
         }
         return example;
     }

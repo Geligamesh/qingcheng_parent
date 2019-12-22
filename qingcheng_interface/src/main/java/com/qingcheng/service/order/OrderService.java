@@ -20,7 +20,7 @@ public interface OrderService {
 
     Order findById(String id);
 
-    void add(Order order);
+    Map<String,Object> add(Order order);
 
     void update(Order order);
 

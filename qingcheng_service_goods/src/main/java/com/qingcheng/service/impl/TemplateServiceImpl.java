@@ -59,7 +59,7 @@ public class TemplateServiceImpl implements TemplateService {
         PageHelper.startPage(page,size);
         Example example = createExample(searchMap);
         Page<Template> templates = (Page<Template>) templateMapper.selectByExample(example);
-        return new PageResult<Template>(templates.getTotal(),templates.getResult());
+        return new PageResult<>(templates.getTotal(), templates.getResult());
     }
 
     /**

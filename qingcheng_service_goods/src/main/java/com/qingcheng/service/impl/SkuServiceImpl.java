@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.SkuMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.goods.Sku;
+import com.qingcheng.pojo.order.OrderItem;
 import com.qingcheng.service.goods.SkuService;
 import com.qingcheng.service.goods.SpuService;
 import com.qingcheng.util.CacheKey;
@@ -149,6 +150,41 @@ public class SkuServiceImpl implements SkuService {
     @Override
     public void deletePriceFromRedisById(String id) {
         redisTemplate.boundHashOps(CacheKey.SKU_PRICE).delete(id);
+    }
+
+    /**
+     * 批量扣减库存
+     * @param orderItemList
+     */
+    @Override
+    public boolean duductionStock(List<OrderItem> orderItemList) {
+        //检查是否可以扣减库存
+        boolean isDeduction = true;
+        //执行扣减
+        for (OrderItem orderItem : orderItemList) {
+            Sku sku = findById(orderItem.getSkuId());
+            if (sku == null) {
+                isDeduction = false;
+                break;
+            }
+            if (!"1".equals(sku.getStatus())) {
+                isDeduction = false;
+                break;
+            }
+            if (sku.getNum() < orderItem.getNum()) {
+                isDeduction = false;
+                break;
+            }
+        }
+        //执行扣减
+        if (isDeduction) {
+            for (OrderItem orderItem : orderItemList) {
+                //扣减库存
+                skuMapper.deductionStock(orderItem.getSkuId(), orderItem.getNum());
+                skuMapper.addSaleNum(orderItem.getSkuId(), orderItem.getNum());
+            }
+        }
+        return isDeduction;
     }
 
     /**
