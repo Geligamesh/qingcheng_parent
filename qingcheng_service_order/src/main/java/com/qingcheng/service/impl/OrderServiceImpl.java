@@ -1,6 +1,7 @@
 package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.OrderConfigMapper;
@@ -15,7 +16,11 @@ import com.qingcheng.service.order.OrderService;
 import com.qingcheng.util.IdWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import tk.mybatis.mapper.entity.Example;
 
 import java.time.LocalDateTime;
@@ -40,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
     private SkuService skuService;
     @Autowired
     private IdWorker idWorker;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
 
     private Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
@@ -111,40 +118,48 @@ public class OrderServiceImpl implements OrderService {
         if (!skuService.duductionStock(orderItemList)) {
             throw new RuntimeException("库存扣减失败");
         }
-        //保存订单主表
-        order.setId(idWorker.nextId() + "");
-        IntStream numStream = orderItemList.stream().mapToInt(OrderItem::getNum);
-        IntStream moneyStream = orderItemList.stream().mapToInt(OrderItem::getMoney);
+        try {
+            //保存订单主表
+            order.setId(idWorker.nextId() + "");
+            IntStream numStream = orderItemList.stream().mapToInt(OrderItem::getNum);
+            IntStream moneyStream = orderItemList.stream().mapToInt(OrderItem::getMoney);
 
-        int totalNum = numStream.sum();
-        int totalMoney = moneyStream.sum();
-        //满减优惠
-        int preMoney = cartService.preferential(order.getUsername());
-        //总数量
-        order.setTotalNum(totalNum);
-        //总金额
-        order.setTotalMoney(totalMoney);
-        order.setPreMoney(preMoney);
-        //支付金额
-        order.setPayMoney(totalMoney - preMoney);
-        order.setCreateTime(new Date());
-        //订单状态
-        order.setOrderStatus("0");
-        //支付状态
-        order.setPayStatus("0");
-        //发货状态
-        order.setConsignStatus("0");
-        orderMapper.insertSelective(order);
+            int totalNum = numStream.sum();
+            int totalMoney = moneyStream.sum();
+            //满减优惠
+            int preMoney = cartService.preferential(order.getUsername());
+            //总数量
+            order.setTotalNum(totalNum);
+            //总金额
+            order.setTotalMoney(totalMoney);
+            order.setPreMoney(preMoney);
+            //支付金额
+            order.setPayMoney(totalMoney - preMoney);
+            order.setCreateTime(new Date());
+            //订单状态
+            order.setOrderStatus("0");
+            //支付状态
+            order.setPayStatus("0");
+            //发货状态
+            order.setConsignStatus("0");
+            orderMapper.insertSelective(order);
 
-        //打折比例
-        double proportion = (double)order.getPayMoney() / order.getTotalMoney();
+            //打折比例
+            double proportion = (double)order.getPayMoney() / order.getTotalMoney();
 
-        //保存订单明细表
-        for (OrderItem orderItem : orderItemList) {
-            orderItem.setId(idWorker.nextId() + "");
-            orderItem.setOrderId(order.getId());
-            orderItem.setPayMoney((int) (orderItem.getMoney() * proportion));
-            orderItemMapper.insertSelective(orderItem);
+            //保存订单明细表
+            for (OrderItem orderItem : orderItemList) {
+                orderItem.setId(idWorker.nextId() + "");
+                orderItem.setOrderId(order.getId());
+                orderItem.setPayMoney((int) (orderItem.getMoney() * proportion));
+                orderItemMapper.insertSelective(orderItem);
+            }
+            // int x = 1 / 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            rabbitTemplate.convertAndSend("", "queue.skuback", JSON.toJSONString(orderItemList));
+            //抛出异常，让其回滚
+            throw new RuntimeException("订单生成失败");
         }
         //清除购物车
         cartService.deleteCheckedCart(order.getUsername());
