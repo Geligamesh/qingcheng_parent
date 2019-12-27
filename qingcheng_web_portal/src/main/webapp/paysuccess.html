@@ -5,19 +5,16 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7; IE=EDGE">
 		<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
-		<title>支付页</title>
+		<title>支付页-成功</title>
 		<link rel="icon" href="./img/favicon.ico">
-
-
+		
+	
     <link rel="stylesheet" type="text/css" href="./css/all.css" />
-    <link rel="stylesheet" type="text/css" href="./css/pages-pay.css" />
+    <link rel="stylesheet" type="text/css" href="./css/pages-paysuccess.css" />
 </head>
 
 	<body>
-	<div id="app">
-		<!--head-->
-		<!-- 头部栏位 -->
-	    <!--页面顶部-->
+		<!--页面顶部-->
 <div id="nav-bottom">
 	<!--顶部-->
 	<div class="nav-top">
@@ -31,18 +28,18 @@
 					<div class="fr typelist">
 						<ul class="types">
 							<li class="f-item"><span>我的订单</span></li>
-
+							
 							<li class="f-item"><span><a href="cart.html" target="_blank">我的购物车</a></span></li>
-							<li class="f-item"><span><a href="home.html" target="_blank">我的青橙</a></span></li>
-							<li class="f-item"><span>青橙会员</span></li>
-							<li class="f-item"><span>企业采购</span></li>
+							<li class="f-item"><span><a href="home.html" target="_blank">我的青橙</a></span></li>			
+							<li class="f-item"><span>青橙会员</span></li>						
+							<li class="f-item"><span>企业采购</span></li>						
 							<li class="f-item"><span>关注青橙</span></li>
 							<li class="f-item"><span><a href="cooperation.html" target="_blank">合作招商</a></span></li>
-							<li class="f-item"><span><a href="shoplogin.html" target="_blank">商家后台</a></span></li>
-							<li class="f-item"><span>网站导航</span></li>
+							<li class="f-item"><span><a href="shoplogin.html" target="_blank">商家后台</a></span></li>				
+							<li class="f-item"><span>网站导航</li>
 						</ul>
 					</div>
-
+					
 				</div>
 			</div>
 		</div>
@@ -59,13 +56,13 @@
 							<form action="" class="sui-form form-inline">
 								<!--searchAutoComplete-->
 								<div class="input-append">
-									<input type="text" id="autocomplete"  class="input-error input-xxlarge" />
+									<input type="text" id="autocomplete"   class="input-error input-xxlarge" />
 									<button class="sui-btn btn-xlarge btn-danger" type="button">搜索</button>
 								</div>
 							</form>
 						</div>
 					</div>
-
+					
 				</div>
 
 			</div>
@@ -74,93 +71,17 @@
 </div>
 
 		<div class="cart py-container">
-
-
 			<!--主内容-->
-			<div class="checkout py-container  pay">
-				<div class="checkout-tit">
-					<h4 class="tit-txt"><span class="success-icon"></span><span  class="success-info">订单提交成功，请您及时付款，以便尽快为您发货~~</span></h4>
-					<div class="paymark">
-						<span class="fl">请您在提交订单<em class="orange time">4小时</em>之内完成支付，超时订单会自动取消。订单号：<em>{{ordersn}}</em></span>
-						<span class="fr"><em class="sui-lead">应付金额：</em><em  class="orange money">￥{{(money / 100).toFixed(2)}}</em></span>
-					</div>
-				</div>
-
-				<div class="check-info">
-					<h4>重要说明：</h4>
-					<ol>
-						<li>品优购商城支付平台目前支持<span class="zfb">支付宝</span>支付方式。</li>
-						<li>其它支付渠道正在调试中，敬请期待。</li>
-						<li>为了保证您的购物支付流程顺利完成，请保存以下支付宝信息。</li>
-					</ol>
-					<h4>支付宝账户信息：（很重要，<span class="save">请保存！！！</span>）</h4>
-					<ul>
-						<li>支付帐号：duqthf1038@sandbox.com</li>
-						<li>密码：111111</li>
-						<li>支付密码：111111</li>
-					</ul>
-				</div>
-
-
-				<div class="checkout-steps">
-					<!--收件人信息-->
-					<div class="step-tit">
-						<h5>支付平台</h5>
-					</div>
-					<div class="step-cont">
-						<ul class="payType">
-							<li><img src="./img/_/pay1.jpg"></li>
-							<li><img src="./img/_/pay2.jpg"></li>
-							<li @click="wxPay"><img src="./img/_/pay3.jpg"></li>
-							<li><img src="./img/_/pay4.jpg"></li>
-							<li><img src="./img/_/pay5.jpg"></li>
-
-						</ul>
-
-					</div>
-					<div class="hr"></div>
-
-					<!--支付和送货-->
-					<div class="payshipInfo">
-						<div class="step-tit">
-							<h5>支付网银</h5>
-						</div>
-						<div class="step-cont">
-							<ul class="payType">
-								<li><img src="./img/_/pay10.jpg"></li>
-								<li><img src="./img/_/pay11.jpg"></li>
-								<li><img src="./img/_/pay12.jpg"></li>
-								<li><img src="./img/_/pay13.jpg"></li>
-								<li><img src="./img/_/pay14.jpg"></li>
-								<li><img src="./img/_/pay15.jpg"></li>
-								<li><img src="./img/_/pay16.jpg"></li>
-								<li><img src="./img/_/pay17.jpg"></li>
-								<li><img src="./img/_/pay18.jpg"></li>
-								<li><img src="./img/_/pay19.jpg"></li>
-								<li><img src="./img/_/pay20.jpg"></li>
-								<li><img src="./img/_/pay21.jpg"></li>
-								<li><img src="./img/_/pay22.jpg"></li>
-
-							</ul>
-						</div>
-						<div class="hr"></div>
-					</div>
-
-					<div class="submit sui-text-center">
-						<a class="sui-btn btn-danger btn-xlarge" href="paysuccess.html" target="_blank">立即支付</a>
-					</div>
-					<div class="otherpay">
-						<div class="step-tit">
-							<h5>其他支付方式</h5>
-						</div>
-						<div class="step-cont">
-							<span><a href="weixinpay.html" target="_blank">微信支付</a></span>
-							<span>中国银联</span>
-						</div>
-					</div>
+			<div class="paysuccess">
+				<div class="success">
+					<h3><img src="./img/_/right.png" width="48" height="48">　恭喜您，支付成功啦！</h3>
+					<div class="paydetail">
+					<p>支付方式：支付宝</p>
+					<p>支付金额：￥1006.00元</p>
+					<p class="button"><a href="myOrder.html" class="sui-btn btn-danger btn-xlarge">查看订单</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html" class="sui-btn btn-xlarge btn-goshop">继续购物</a></p>
+				    </div>
 				</div>
 			</div>
-
 		</div>
 		<!-- 底部栏位 -->
 		<!--页面底部-->
@@ -294,33 +215,10 @@
 		</div>
 	</div>
 </div>
-
-</div>
 <!--页面底部END-->
-<script src="js/axios.js"></script>
-<script src="js/vue.js"></script>
-<script src="js/util.js"></script>
-<script>
-	new Vue({
-		el:"#app",
-		data() {
-			return {
-				ordersn:"",
-				money:0
-			}
-		},
-		created(){
-			this.ordersn = getQueryString("ordersn");
-			this.money = getQueryString("money");
-		},
-		methods:{
-			wxPay() {
-				location.href = `weixinpay.html?orderId=${this.ordersn}`;
-			}
-		}
-	});
-</script>
-
+		
+		
+	
 
 </body>
 
