@@ -10,6 +10,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @RestController
@@ -39,7 +45,25 @@ public class WxPayController {
     }
 
     @RequestMapping("notify")
-    public void notifyLogic() {
+    public void notifyLogic(HttpServletRequest request) {
         System.out.println("支付成功，执行回调......");
+        try {
+            InputStream inputStream = request.getInputStream();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+            String result = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+            System.out.println(result);
+            outputStream.close();
+            inputStream.close();
+
+            wxPayService.notifyLogic(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

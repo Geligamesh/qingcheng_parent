@@ -32,4 +32,5 @@ public interface OrderService {
 
     void orderTimeOutLogic();
 
+    void updatePayStatus(String orderId,String transactionId);
 }

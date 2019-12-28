@@ -13,4 +13,9 @@ public interface WxPayService {
      */
     Map createNative(String orderId,Integer money,String notifyUrl);
 
+    /**
+     * 微信支付回调
+     * @param xml
+     */
+    void notifyLogic(String xml);
 }

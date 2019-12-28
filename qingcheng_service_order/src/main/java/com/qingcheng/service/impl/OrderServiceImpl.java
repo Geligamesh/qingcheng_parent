@@ -48,7 +48,6 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-
     private Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     /**
@@ -231,7 +230,7 @@ public class OrderServiceImpl implements OrderService {
             //记录订单日志
             OrderLog orderLog = new OrderLog();
             //设置操作员
-            orderLog.setOperater("admin");
+            orderLog.setOperater("system");
             //设置操作时间
             orderLog.setOperateTime(new Date());
             //订单ID
@@ -293,6 +292,40 @@ public class OrderServiceImpl implements OrderService {
             orderMapper.updateByPrimaryKeySelective(order);
 
         });
+    }
+
+    /**
+     * 修改订单状态
+     * @param orderId
+     * @param transactionId
+     */
+    @Override
+    public void updatePayStatus(String orderId, String transactionId) {
+        Order order = findById(orderId);
+        if (order != null && "0".equals(order.getPayStatus())) {
+            //修改订单状态信息
+            order.setPayStatus("1");//修改支付状态
+            order.setOrderStatus("1");//订单状态
+            order.setUpdateTime(new Date());//修改日期
+            order.setPayTime(new Date());//支付日期
+            order.setTransactionId(transactionId);//交易流水号
+            //修改
+            update(order);
+            //记录订单日志
+            OrderLog orderLog = new OrderLog();
+            orderLog.setId(idWorker.nextId() + "");
+            orderLog.setOrderId(orderId);
+            //系统自动修改
+            orderLog.setOperater("system");
+            orderLog.setOperateTime(new Date());
+            //订单状态
+            orderLog.setOrderStatus("1");
+            //支付状态
+            orderLog.setPayStatus("1");
+            //备注
+            orderLog.setRemarks("支付流水号:" + transactionId);
+            orderLogMapper.insertSelective(orderLog);
+        }
     }
 
     /**

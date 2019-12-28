@@ -4,6 +4,7 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.github.wxpay.sdk.Config;
 import com.github.wxpay.sdk.WXPayRequest;
 import com.github.wxpay.sdk.WXPayUtil;
+import com.qingcheng.service.order.OrderService;
 import com.qingcheng.service.order.WxPayService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,6 +16,8 @@ public class WxPayServiceImpl implements WxPayService {
 
     @Autowired
     private Config config;
+    @Autowired
+    private OrderService orderService;
 
     @Override
     public Map createNative(String orderId, Integer money, String notifyUrl) {
@@ -48,6 +51,35 @@ public class WxPayServiceImpl implements WxPayService {
         } catch (Exception e) {
             e.printStackTrace();
             return new HashMap();
+        }
+    }
+
+    @Override
+    public void notifyLogic(String xml) {
+        try {
+            //1.对xml进行解析 解析成map
+            Map<String, String> map = WXPayUtil.xmlToMap(xml);
+            //验证签名
+            boolean signatureValid = WXPayUtil.isSignatureValid(map, config.getKey());
+            System.out.println("验证签名是否正确：" + signatureValid);
+            System.out.println(map.get("result_code"));
+            System.out.println(map.get("total_fee"));
+            System.out.println(map.get("out_trade_no"));
+
+            //修改订单状态
+            if (signatureValid) {
+                if ("SUCCESS".equals(map.get("result_code"))) {
+                    orderService.updatePayStatus(map.get("out_trade_no"), map.get("transaction_id"));
+                }else {
+                    //记录日志
+                }
+            }else {
+                //记录日志
+
+            }
+            System.out.println();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
