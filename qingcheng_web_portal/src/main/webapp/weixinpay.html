@@ -215,6 +215,7 @@
 <script src="js/axios.js"></script>
 <script src="js/qrcode.min.js"></script>
 <script src="js/util.js"></script>
+<script src="js/stomp.min.js"></script>
 <script>
 	new Vue({
 		el:"#app",
@@ -240,6 +241,7 @@
 						qrcode.makeCode(response.data.code_url);
 						this.orderId = response.data.out_trade_no;
 						this.money = response.data.total_fee;
+						money = this.money;
 					}else {
 						//跳转到错误页
 						location.href = "payfail.html";
@@ -247,7 +249,26 @@
 				});
 			}
 		}
-	})
+	});
+
+	let money = 0;
+	let client = Stomp.client('ws://localhost:15674/ws');
+
+	/*let print_first = pipe('#first', function(data) {
+        client.send('/topic/test', {"content-type":"text/plain"}, data);
+    });*/
+
+	let on_connect = function(x) {
+		id = client.subscribe("/exchange/paynotify", function(d) {
+			if (d.body === getQueryString("orderId")) {
+				location.href = "paysuccess.html?money=" + money;
+			}
+		});
+	};
+	let on_error =  function() {
+		console.log('error');
+	};
+	client.connect('guest', 'guest', on_connect, on_error, '/');
 </script>
 
 </body>

@@ -6,6 +6,7 @@ import com.github.wxpay.sdk.WXPayRequest;
 import com.github.wxpay.sdk.WXPayUtil;
 import com.qingcheng.service.order.OrderService;
 import com.qingcheng.service.order.WxPayService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -18,6 +19,8 @@ public class WxPayServiceImpl implements WxPayService {
     private Config config;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public Map createNative(String orderId, Integer money, String notifyUrl) {
@@ -70,6 +73,8 @@ public class WxPayServiceImpl implements WxPayService {
             if (signatureValid) {
                 if ("SUCCESS".equals(map.get("result_code"))) {
                     orderService.updatePayStatus(map.get("out_trade_no"), map.get("transaction_id"));
+                    //发送订单号给rabbitMQ
+                    rabbitTemplate.convertAndSend("paynotify", "", map.get("out_trade_no"));
                 }else {
                     //记录日志
                 }

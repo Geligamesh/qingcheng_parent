@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/stomp.min.js"></script>
+
+    <script>
+        let client = Stomp.client('ws://localhost:15674/ws');
+
+        /*let print_first = pipe('#first', function(data) {
+            client.send('/topic/test', {"content-type":"text/plain"}, data);
+        });*/
+
+        let on_connect = function(x) {
+            id = client.subscribe("/exchange/paynotify", function(d) {
+                alert(d.body);
+            });
+        };
+        let on_error =  function() {
+            console.log('error');
+        };
+        client.connect('guest', 'guest', on_connect, on_error, '/');
+    </script>
+</head>
+<body>
+
+</body>
+</html>
