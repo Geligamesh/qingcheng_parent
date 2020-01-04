@@ -1,5 +1,8 @@
 package com.qingcheng.util;
 
+/**
+ * 缓存键值
+ */
 public enum  CacheKey {
 
     AD,//广告
