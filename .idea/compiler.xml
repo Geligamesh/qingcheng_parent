@@ -16,6 +16,7 @@
         <module name="qingcheng_service_config" />
         <module name="qingcheng_service_goods" />
         <module name="qingcheng_service_order" />
+        <module name="qingcheng_service_seckill" />
         <module name="qingcheng_service_sms" />
         <module name="qingcheng_service_system" />
         <module name="qingcheng_service_user" />
@@ -36,6 +37,7 @@
       <module name="qingcheng_service_config" target="1.5" />
       <module name="qingcheng_service_goods" target="8" />
       <module name="qingcheng_service_order" target="8" />
+      <module name="qingcheng_service_seckill" target="8" />
       <module name="qingcheng_service_sms" target="1.5" />
       <module name="qingcheng_service_system" target="8" />
       <module name="qingcheng_service_user" target="1.5" />
