@@ -9,6 +9,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tk.mybatis.mapper.entity.Example;
+
+import javax.servlet.http.Cookie;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -28,6 +30,7 @@ public class SeckillGoodsTask {
      */
     @Scheduled(cron = "0/15 * * * * ?")
     public void loadGoods() {
+
         //1.查询所有时间区间
         List<Date> dateMenus = DateUtil.getDateMenus();
         //2.循环时间区间，查询每个时间区间的秒杀商品
