@@ -19,6 +19,7 @@ public class Config extends WXPayConfig {
     InputStream getCertStream() {
         return null;
     }
+
     IWXPayDomain getWXPayDomain() {
         return new IWXPayDomain() {
 

@@ -8,7 +8,6 @@ import com.qingcheng.service.order.OrderService;
 import com.qingcheng.service.order.WxPayService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.HashMap;
 import java.util.Map;
 

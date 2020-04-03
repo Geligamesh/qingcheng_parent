@@ -9,6 +9,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tk.mybatis.mapper.entity.Example;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -27,7 +31,9 @@ public class SeckillGoodsTask {
      * 每过30秒执行一次
      */
     @Scheduled(cron = "0/15 * * * * ?")
-    public void loadGoods() {
+    public void loadGoods(HttpServletRequest request) {
+
+        HttpSession session = request.getSession();
 
         //1.查询所有时间区间
         List<Date> dateMenus = DateUtil.getDateMenus();
